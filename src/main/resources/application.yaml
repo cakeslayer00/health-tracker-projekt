@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: health-tracker
+
+  config:
+    import: file:.env[.properties]
+
+  datasource:
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    url: jdbc:postgresql://localhost:5432/${POSTGRES_DB}
+    driver-class-name: org.postgresql.Driver
