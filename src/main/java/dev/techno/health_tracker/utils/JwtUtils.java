@@ -6,9 +6,4 @@ public final class JwtUtils {
 
     }
 
-    public void generateToken() {
-
-    }
-
-
 }
