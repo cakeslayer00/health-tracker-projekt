@@ -1,3 +1,7 @@
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 86400000
+
 spring:
   application:
     name: health-tracker
@@ -13,3 +17,4 @@ spring:
 
   liquibase:
     enabled: true
+
