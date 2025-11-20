@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <title>Daily Fulfillment Bot</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <style>
+        #chat-box { width: 400px; height: 300px; border: 1px solid #ccc; overflow-y: scroll; padding: 10px; margin-bottom: 10px;}
+        .message { margin: 5px 0; }
+        .bot { color: green; font-weight: bold; }
+        .user { color: blue; }
+    </style>
+</head>
+<body>
+
+<h2>Чат поддержки</h2>
+<div id="chat-box"></div>
+
+<input type="text" id="messageInput" placeholder="Поделись переживаниями..." style="width: 300px;">
+<button onclick="sendMessage()">Отправить</button>
+
+<script type="text/javascript">
+    var stompClient = null;
+
+    // 1. Функция подключения (вызывается при загрузке страницы)
+    function connect() {
+        // Указываем тот же энпоинт, что и в Java (registry.addEndpoint("/ws-chat"))
+        var socket = new SockJS('/ws-chat');
+        stompClient = Stomp.over(socket);
+
+        stompClient.connect({}, function (frame) {
+            console.log('Connected: ' + frame);
+
+            // 2. ПОДПИСКА. Слушаем канал, куда бот будет отвечать.
+            // Это совпадает с @SendTo("/topic/answers") в Java
+            stompClient.subscribe('/topic/answers', function (response) {
+                // Когда приходит ответ, мы достаем из него тело (body) и показываем
+                showResponse(JSON.parse(response.body).content);
+            });
+        });
+    }
+
+    // 3. ОТПРАВКА. Функция отправки сообщения боту
+    function sendMessage() {
+        var messageContent = document.getElementById('messageInput').value;
+
+        // Показываем свое сообщение в чате сразу
+        showMessage("Вы: " + messageContent, "user");
+
+        // Отправляем на адрес, который слушает контроллер: @MessageMapping("/send-message")
+        // Префикс /app мы задали в конфиге (setApplicationDestinationPrefixes)
+        stompClient.send("/app/send-message", {}, JSON.stringify({'text': messageContent}));
+
+        // Очищаем поле ввода
+        document.getElementById('messageInput').value = '';
+    }
+
+    // Функция для отрисовки ответа бота
+    function showResponse(message) {
+        showMessage("Бот: " + message, "bot");
+    }
+
+    // Вспомогательная функция добавления HTML
+    function showMessage(text, className) {
+        var responseNode = document.createElement('div');
+        responseNode.className = "message " + className;
+        responseNode.innerText = text;
+        var chatBox = document.getElementById('chat-box');
+        chatBox.appendChild(responseNode);
+        chatBox.scrollTop = chatBox.scrollHeight; // Прокрутка вниз
+    }
+
+    // Запускаем подключение сразу при открытии
+    connect();
+</script>
+
+</body>
+</html>

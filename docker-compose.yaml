@@ -18,10 +18,14 @@ services:
       retries: 3
       start_period: 30s
 
+  ollama-service:
+    image: ollama/ollama:latest
+    container_name: ollama-backend
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./ollama_data:/root/.ollama
+
 volumes:
-  redis_data:
-    driver: local
-  minio_data:
-    driver: local
   postgres_data:
     driver: local
